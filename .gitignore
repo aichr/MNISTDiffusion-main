@@ -12,3 +12,6 @@ env/
 # Local datasets and outputs
 mnist_data/
 results/
+
+# macOS
+.DS_Store

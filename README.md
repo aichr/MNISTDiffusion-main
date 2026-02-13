@@ -58,6 +58,11 @@ PY
 ```
 Tip: pass `--no_clip` during training if you want to compare unclipped sampling (can be less stable).
 
+### Forward diffusion and reverse sampling (math + intuition)
+The figure below summarizes the full forward pass, reverse pass, and the physical meaning of `alpha`/`beta` used in this implementation.
+
+![DDPM forward/reverse equations and alpha-beta meaning](figures/diffusion_math_summary.png "DDPM math summary")
+
 ## Visualize noise schedule
 Use the provided script to generate a figure that explains the cosine schedule and forward diffusion behavior:
 ```bash
