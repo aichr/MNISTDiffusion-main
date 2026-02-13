@@ -1,3 +1,14 @@
-.vscode
+.vscode/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local datasets and outputs
 mnist_data/
 results/
