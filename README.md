@@ -17,18 +17,38 @@ python train_mnist.py
 Feel free to tuning training parameters, type `python train_mnist.py -h` to get help message of arguments.
 
 ### Train and resume
-Train with custom settings (saves checkpoints and samples each epoch into `results/`):
+Train with custom settings (saves checkpoints and samples each epoch into `results/<run_name>/`):
 ```bash
-python train_mnist.py --epochs 60 --batch_size 128 --lr 0.0003 --model_base_dim 64
+python train_mnist.py --epochs 60 --batch_size 128 --lr 0.0003 --model_base_dim 64 --run_name baseline_run
 ```
 Resume from a checkpoint:
 ```bash
-python train_mnist.py --ckpt results/steps_00001000.pt --epochs 20
+python train_mnist.py --ckpt results/baseline_run/steps_00001000.pt --epochs 20 --run_name baseline_run
 ```
 Device selection defaults to CUDA, then MPS, then CPU.
 
+### Conditional generation (fixed digit label)
+A separate conditional implementation is provided (keeps original pipeline unchanged):
+- `unet_conditional.py`
+- `model_conditional.py`
+- `train_mnist_conditional.py`
+
+Train a conditional model and save conditional samples into `results_conditional/<run_name>/`:
+```bash
+python train_mnist_conditional.py --epochs 60 --batch_size 128 --sample_label 1 --guidance_scale 3.0 --run_name cond_digit1
+```
+
+This trains with MNIST labels and samples only the chosen label each epoch.
+For example, `--sample_label 1` generates digit `1` samples.
+
+Useful options:
+- `--sample_label 1` choose which digit to generate (`0-9`)
+- `--guidance_scale 0` disable classifier-free guidance
+- `--cfg_dropout 0.1` probability of dropping labels during training (for guidance)
+- `--cpu` force CPU training
+
 ### Sampling and visualization
-During training, a grid of samples is saved as `results/steps_XXXXXXXX.png`.
+During training, a grid of samples is saved as `results/<run_name>/steps_XXXXXXXX.png`.
 You can also sample from a checkpoint directly with a short script:
 ```bash
 python - <<'PY'
@@ -44,7 +64,7 @@ elif torch.backends.mps.is_available():
     device = "mps"
 else:
     device = "cpu"
-ckpt = torch.load("results/steps_00001000.pt", map_location=device)
+ckpt = torch.load("results/baseline_run/steps_00001000.pt", map_location=device)
 
 model = MNISTDiffusion(timesteps=1000, image_size=28, in_channels=1, base_dim=64, dim_mults=[2, 4]).to(device)
 ema = ExponentialMovingAverage(model, device=device, decay=0.0)
@@ -52,8 +72,8 @@ ema.load_state_dict(ckpt["model_ema"])
 
 ema.eval()
 samples = ema.module.sampling(36, clipped_reverse_diffusion=True, device=device)
-save_image(samples, "results/samples_from_ckpt.png", nrow=int(math.sqrt(36)))
-print("saved results/samples_from_ckpt.png")
+save_image(samples, "results/baseline_run/samples_from_ckpt.png", nrow=int(math.sqrt(36)))
+print("saved results/baseline_run/samples_from_ckpt.png")
 PY
 ```
 Tip: pass `--no_clip` during training if you want to compare unclipped sampling (can be less stable).
